@@ -1,6 +1,10 @@
 from utilities.utilities import import_user_config
 from tools import movedata
 
+## This is the main executable to run the functions in tools.py
+## Run the program as "python calib.py" with the appropriate flags below depending on what you want to do.
+## Eg. To move files, use the -m flag.
+
 if __name__ == "__main__":
     # Allow user to in CLI optionally overwrite the config values
     import argparse
@@ -24,7 +28,7 @@ if __name__ == "__main__":
     parser.add_argument('-t', '--test', action="store_true")
 
     args = parser.parse_args()
-    print(args)
+    #print(args)
     if args.config is None:
         config = import_user_config('config/my_config.json')
     else:
@@ -40,6 +44,7 @@ if __name__ == "__main__":
         config.update({'flat_subtract': True})
     if args.flatsubtract:
         config.update({'move_data': True})
+        movedata('2018-05-05',3)
     if args.list:
         config.update({'list': args.list[0]})
     if args.test:
