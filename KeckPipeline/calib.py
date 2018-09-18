@@ -4,17 +4,27 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
+## RENAME DATA FILES
+import os
+from astropy.io import fits
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
 
-def movedata(startdate, numdays):
+
+def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018' and numdays is just an integer.
     data = []
-    for file in os.listdir("./2018"):
-        if file.endswith(".fits"):
-            data.append(os.path.join("2018", file))
+    for file in os.listdir("./PLAY"):  # put in your path directory
+        if file.endswith(".fits"):  # what does the file end with?
+            data.append(os.path.join("PLAY", file))
 
+    # Creating a list of dates starting from the startdate, and lasts a number of days that you input.
     datelist = pd.date_range(startdate, periods=numdays, freq='D').strftime('%d-%m-%Y').tolist()
 
+    # Create folders named after the list of dates.
     for folder in datelist:
-        os.mkdir(os.path.join('2018', str(folder)))
+        if not os.path.exists('datelist'):
+            os.mkdir(os.path.join('PLAY', str(folder)))
 
     n = len(data)
 
@@ -30,13 +40,26 @@ def movedata(startdate, numdays):
         filt.append(header['FWINAME'])
         Name, Date, Number, Ext = data[i].split(".")
         Date_1.append(datetime.strptime(Date, "%Y%m%d").date())
+
         renamed.append(('2018/' + 'K' + header['OBJECT'] + header['FWINAME'] + '' + ".fits"))
 
     # Name,Date,Number,Ext=line.split(".")
     lists = [data, obj, Date_1, itime, filt, renamed]
     data_headers = pd.concat([pd.Series(x) for x in lists], axis=1)
 
-    return Date, data_headers
+    return data_headers
+
+
+'''
+for line in datafiles:
+    os.rename()
+
+for i in range(0, n):
+    header = fits.getheader(datafiles[i])
+    objd.append(header['OBJECT'])
+    itimed.append(header['ITIME'])
+    filt.append(header['FWINAME'])
+    os.rename(datafiles[i], newname)'''
 
 
 ## CREATE MASTER DARK FRAME
