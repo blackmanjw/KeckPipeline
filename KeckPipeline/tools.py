@@ -47,10 +47,12 @@ def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018'
 
     return Date, data_headers
 
-## CREATE MASTER DARK FRAME
+def rename():
+    pass
 
-def darks():
-    ## Create List of Darks
+## Create *.list file of darkframes
+
+def darklist():
 
     darkfiles = []
     for file in os.listdir("./Darks"):
@@ -60,8 +62,11 @@ def darks():
     with open('Darks/dark.list', 'w') as f:
         for item in darkfiles:
             f.write("%s\n" % item)
+    return darkfiles
 
-    # Import list of Dark Frames
+### Combine Dark Frames
+
+def darkcombine():
 
     darklist = [line.rstrip('\n') for line in open('Darks/dark.list')]
 
@@ -96,7 +101,21 @@ def darks():
 
 ## Create List of Dome Flats
 
-def flats():
+## Create *.list file of Dome Flats
+
+def flatlist():
+
+    flats = []
+    for file in os.listdir("./Flats"):
+        if file.endswith(".fits"):
+            flats.append(os.path.join("Flats", file))
+
+    with open('Flats/flats.list', 'w') as f:
+        for item in flats:
+            f.write("%s\n" % item)
+    return flats
+
+def flatcombine():
     mediandark = darks()
     domeflatfiles = []
     for file in os.listdir("./DomeFlats"):
