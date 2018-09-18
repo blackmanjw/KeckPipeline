@@ -1,0 +1,23 @@
+{
+  "enter_long": 12,
+  "exit_long": 7,
+  "enter_short": 10,
+  "exit_short": 8,
+  "atr_multiplier": 3,
+  "atr_span": 20,
+  "risk": 0.04,
+  "capital": 100000,
+  "pyramid_limit": 4,
+  "trade_pair": "btc_usdt",
+  "frequency": "4h",
+  "start_date": "2015-08-01",
+  "end_date": "yesterday",
+  "period_n_months": 10,
+  "random_period": true,
+  "random_backtest":false,
+  "random_iterations":12,
+  "random_tempsave":false,
+  "atr_pos_size": true,
+  "plot_diagnostics": true,
+  "plot_trader_metrics": true
+}
