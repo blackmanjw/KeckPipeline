@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 ## Rename Files, Move and Create Folders
 
 def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018' and numdays is just an integer.
+
     data = []
     for file in os.listdir("./Data"):  # put in your path directory
         if file.endswith(".fits"):  # what does the file end with?
@@ -38,7 +39,6 @@ def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018'
         filt.append(header['FWINAME'])
         Name, Date, Number, Ext = data[i].split(".")
         Date_1.append(datetime.strptime(Date, "%Y%m%d").date())
-
         renamed.append(('2018/' + 'K' + header['OBJECT'] + header['FWINAME'] + '' + ".fits"))
 
     # Name,Date,Number,Ext=line.split(".")
@@ -52,14 +52,14 @@ def rename():
 
 ## Create *.list file of darkframes
 
-def darklist():
+def darklist(dir):
 
     darkfiles = []
-    for file in os.listdir("./Darks"):
+    for file in os.listdir("./" + dir):
         if file.endswith(".fits"):
-            darkfiles.append(os.path.join("Darks", file))
+            darkfiles.append(os.path.join(dir, file))
 
-    with open('Darks/dark.list', 'w') as f:
+    with open(dir + '/dark.list', 'w') as f:
         for item in darkfiles:
             f.write("%s\n" % item)
     return darkfiles
@@ -68,7 +68,7 @@ def darklist():
 
 def darkcombine():
 
-    darklist = [line.rstrip('\n') for line in open('Darks/dark.list')]
+    dark_list = [line.rstrip('\n') for line in open('Darks/dark.list')]
 
     print("\n" 'DARK Source Files:')
 
@@ -77,18 +77,18 @@ def darkcombine():
     print("\n" 'DARK Exposure Times:')
 
     darksexp = []
-    for line in darklist:
+    for line in dark_list:
         header = fits.getheader(line)
         darksexp.append(header['ITIME'])
         print(header['ITIME'])
 
     darks = []
-    for file in darklist:
+    for file in dark_list:
         darks.append(fits.getdata(file))
 
     mediandark = np.median(darks, axis=0)
 
-    header = fits.getheader(darklist[0])
+    header = fits.getheader(dark_list[0])
 
     header['HISTORY'] = 'Median combined'
 
@@ -103,14 +103,14 @@ def darkcombine():
 
 ## Create *.list file of Dome Flats
 
-def flatlist():
+def flatlist(dir):
 
     flats = []
-    for file in os.listdir("./Flats"):
+    for file in os.listdir("./" + dir):
         if file.endswith(".fits"):
-            flats.append(os.path.join("Flats", file))
+            flats.append(os.path.join(dir, file))
 
-    with open('Flats/flats.list', 'w') as f:
+    with open(dir + '/flats.list', 'w') as f:
         for item in flats:
             f.write("%s\n" % item)
     return flats
