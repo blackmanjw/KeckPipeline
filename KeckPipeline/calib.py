@@ -1,5 +1,5 @@
 from utilities.utilities import import_user_config
-from tools import movedata
+import tools
 
 ## This is the main executable to run the functions in tools.py
 ## Run the program as "python calib.py" with the appropriate flags below depending on what you want to do.
@@ -22,6 +22,8 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--list', type=str, nargs=1, help='usage -l file.list')
     parser.add_argument('-m', '--movedata', action="store_true")
     parser.add_argument('-fs', '--flatsubtract', action="store_true")
+    parser.add_argument('-dl', '--darklist', action="store_true")
+    parser.add_argument('-fl', '--flatlist', action="store_true")
     parser.add_argument('-ds', '--darksubtract', action="store_true")
     parser.add_argument('-dc', '--darkcombine', action="store_true")
     parser.add_argument('-fc', '--flatcombine', action="store_true")
@@ -37,6 +39,15 @@ if __name__ == "__main__":
         config.update({'dark_combine': True})
     if args.darksubtract:
         config.update({'dark_subtract': True})
+    if args.darklist:
+        tools.darklist('Darks')
+    #else:
+    #    tools.darklist(args.darklist[0])
+    if args.flatlist:
+        tools.flatlist('Flats')
+    if args.darkcombine:
+        tools.darklist('Darks')
+        tools.darkcombine()
     if args.flatcombine:
         config.update({'flat_combine': True})
         print('Please combine flats!!!')
@@ -44,7 +55,7 @@ if __name__ == "__main__":
         config.update({'flat_subtract': True})
     if args.flatsubtract:
         config.update({'move_data': True})
-        movedata('2018-05-05',3)
+        tools.movedata('2018-05-05',3)
     if args.list:
         config.update({'list': args.list[0]})
     if args.test:
