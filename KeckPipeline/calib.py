@@ -4,13 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-## RENAME DATA FILES
-import os
-from astropy.io import fits
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-
+## Rename Files, Move and Create Folders
 
 def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018' and numdays is just an integer.
     data = []
@@ -48,19 +42,6 @@ def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018'
     data_headers = pd.concat([pd.Series(x) for x in lists], axis=1)
 
     return data_headers
-
-
-'''
-for line in datafiles:
-    os.rename()
-
-for i in range(0, n):
-    header = fits.getheader(datafiles[i])
-    objd.append(header['OBJECT'])
-    itimed.append(header['ITIME'])
-    filt.append(header['FWINAME'])
-    os.rename(datafiles[i], newname)'''
-
 
 ## CREATE MASTER DARK FRAME
 
