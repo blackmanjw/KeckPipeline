@@ -8,22 +8,20 @@ from datetime import datetime, timedelta
 
 def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018' and numdays is just an integer.
 
-    data = []
-    for file in os.listdir("./Data"):  # put in your path directory
-        if file.endswith(".fits"):  # what does the file end with?
-            data.append(os.path.join("Data", file))
-
     # Creating a list of dates starting from the startdate, and lasts a number of days that you input.
     datelist = pd.date_range(startdate, periods=numdays, freq='D').strftime('%d-%m-%Y').tolist()
 
-    print(datelist)
-
     # Create folders named after the list of dates.
     for folder in datelist:
-        if os.path.exists('datelist'):
-            break
-        else:
+        if not os.path.exists('datelist'):
             os.mkdir(os.path.join('Data', str(folder)))
+
+
+def rename(dir):
+    data = []
+    for file in os.listdir("./" + dir):  # put in your path directory
+        if file.endswith(".fits"):  # what does the file end with?
+            data.append(os.path.join(dir, file))
 
     n = len(data)
 
@@ -32,6 +30,7 @@ def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018'
     filt = []
     renamed = []
     Date_1 = []
+    count = []
     for i in range(0, n):
         header = fits.getheader(data[i])
         obj.append(header['OBJECT'])
@@ -39,16 +38,32 @@ def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018'
         filt.append(header['FWINAME'])
         Name, Date, Number, Ext = data[i].split(".")
         Date_1.append(datetime.strptime(Date, "%Y%m%d").date())
-        renamed.append(('2018/' + 'K' + header['OBJECT'] + header['FWINAME'] + '' + ".fits"))
+        if obj[i] in obj:
+            count = obj.count(obj[i])
+        if ('Lamp' in obj[i] or 'Flat' in obj[i]):
+            renamed.append(('Flats/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + '_' + str(count) + ".fits"))
+            os.makedirs(os.path.dirname('Flats/' + str(Date_1[i]) + '/'), exist_ok=True)
+        elif 'dark' in obj[i]:
+            renamed.append(('Darks/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + '_' + str(
+                count) + ".fits"))
+            os.makedirs(os.path.dirname('Darks' + str(Date_1[i]) + '/'), exist_ok=True)
+        elif 'sky' in obj[i]:
+            renamed.append(('Skys/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + '_' + str(
+                count) + ".fits"))
+            os.makedirs(os.path.dirname('Skys/' + str(Date_1[i]) + '/'), exist_ok=True)
+        else:
+            renamed.append(('Data/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + '_' + str(
+                count) + ".fits"))
+            os.makedirs(os.path.dirname('Data/' + str(Date_1[i]) + '/'), exist_ok=True)
+        os.rename(data[i], renamed[i])
 
     # Name,Date,Number,Ext=line.split(".")
     lists = [data, obj, Date_1, itime, filt, renamed]
     data_headers = pd.concat([pd.Series(x) for x in lists], axis=1)
+    print(data_headers)
 
-    return Date, data_headers
+    return data_headers, obj
 
-def rename():
-    pass
 
 ## Create *.list file of darkframes
 
