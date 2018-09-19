@@ -6,17 +6,6 @@ from datetime import datetime, timedelta
 
 ## Rename Files, Move and Create Folders
 
-def movedata(startdate, numdays):  # where startdate is in the form '01-01-2018' and numdays is just an integer.
-
-    # Creating a list of dates starting from the startdate, and lasts a number of days that you input.
-    datelist = pd.date_range(startdate, periods=numdays, freq='D').strftime('%d-%m-%Y').tolist()
-
-    # Create folders named after the list of dates.
-    for folder in datelist:
-        if not os.path.exists('datelist'):
-            os.mkdir(os.path.join('Data', str(folder)))
-
-
 def rename(dir):
     data = []
     for file in os.listdir("./" + dir):  # put in your path directory
