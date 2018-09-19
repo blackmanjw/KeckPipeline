@@ -4,10 +4,12 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-## Rename Files, Move and Create Folders
-
 pd.options.display.max_rows = 4000
 
+## Rename Files, Move and Create Folders
+## This function takes the raw downloads from the KOA website and sorts the files into Objects, Darks, Flats and Skys.
+## Objects are sorted by object, then date. The calibration files are just sorted by date.
+## Run with "python3 calib.py -r -s <source_folder>" where <soure_folder> is the path to your data you wish to move and rename.
 
 def rename(dir):
     data = []
