@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 
 ## Rename Files, Move and Create Folders
 
+pd.options.display.max_rows = 4000
+
+
 def rename(dir):
     data = []
     for file in os.listdir("./" + dir):  # put in your path directory
@@ -13,45 +16,42 @@ def rename(dir):
             data.append(os.path.join(dir, file))
 
     n = len(data)
-
-    obj = []
-    itime = []
-    filt = []
-    renamed = []
-    Date_1 = []
-    count = []
+    obj, itime, filt, renamed, datemod, count, flatmod, mod = ([] for i in range(8))
     for i in range(0, n):
         header = fits.getheader(data[i])
+        Name, Date, Number, Ext = data[i].split(".")
         obj.append(header['OBJECT'])
         itime.append(header['ITIME'])
         filt.append(header['FWINAME'])
-        Name, Date, Number, Ext = data[i].split(".")
-        Date_1.append(datetime.strptime(Date, "%Y%m%d").date())
-        if obj[i] in obj:
-            count = obj.count(obj[i])
+        mod.append((header['OBJECT'] + header['FWINAME']))
+        flatmod.append((header['OBJECT'] + header['FWINAME'] + Date))
+        datemod.append(datetime.strptime(Date, "%Y%m%d").date())
+        if flatmod[i] in flatmod:
+            count = flatmod.count(flatmod[i])
         if ('Lamp' in obj[i] or 'Flat' in obj[i]):
-            renamed.append(('Flats/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + '_' + str(count) + ".fits"))
-            os.makedirs(os.path.dirname('Flats/' + str(Date_1[i]) + '/'), exist_ok=True)
-        elif 'dark' in obj[i]:
-            renamed.append(('Darks/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + '_' + str(
+            renamed.append(('Flats/' + str(datemod[i]) + '/' + 'K' + header['OBJECT'] + str(count) + ".fits"))
+            os.makedirs(os.path.dirname('Flats/' + str(datemod[i]) + '/'), exist_ok=True)
+        elif ('Dark' in obj[i]) or ('dark' in obj[i]):
+            renamed.append(('Darks/' + str(datemod[i]) + '/' + 'K' + header['OBJECT'] + str(count) + ".fits"))
+            os.makedirs(os.path.dirname('Darks/' + str(datemod[i]) + '/'), exist_ok=True)
+        elif ('Sky' in obj[i]) or ('sky' in obj[i]):
+            renamed.append(('Skys/' + str(datemod[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + str(
                 count) + ".fits"))
-            os.makedirs(os.path.dirname('Darks' + str(Date_1[i]) + '/'), exist_ok=True)
-        elif 'sky' in obj[i]:
-            renamed.append(('Skys/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + '_' + str(
-                count) + ".fits"))
-            os.makedirs(os.path.dirname('Skys/' + str(Date_1[i]) + '/'), exist_ok=True)
+            os.makedirs(os.path.dirname('Skys/' + str(datemod[i]) + '/'), exist_ok=True)
         else:
-            renamed.append(('Data/' + str(Date_1[i]) + '/' + 'K' + header['OBJECT'] + header['FWINAME'] + '_' + str(
-                count) + ".fits"))
-            os.makedirs(os.path.dirname('Data/' + str(Date_1[i]) + '/'), exist_ok=True)
+            renamed.append(('Objects/' + header['OBJECT'] + '/' + str(datemod[i]) + '/' + 'K' + header['OBJECT'] +
+                            header['FWINAME'] + str(
+                        count) + ".fits"))
+            os.makedirs(os.path.dirname('Objects/' + header['OBJECT'] + '/' + str(datemod[i]) + '/'), exist_ok=True)
         os.rename(data[i], renamed[i])
 
-    # Name,Date,Number,Ext=line.split(".")
-    lists = [data, obj, Date_1, itime, filt, renamed]
+        # Name,Date,Number,Ext=line.split(".")
+    lists = [data, mod, datemod, itime, flatmod, renamed]
     data_headers = pd.concat([pd.Series(x) for x in lists], axis=1)
     print(data_headers)
 
-    return data_headers, obj
+    return data_headers
+
 
 
 ## Create *.list file of darkframes
