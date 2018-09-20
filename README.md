@@ -8,6 +8,24 @@ This is a pipeline for performing calibration corrections on NIRC2 images obtain
 
 # Documentation and Installation
 
+
+### Requirements
+
+Required Python packages are listed in requirements.txt.
+
+They include:
+
+astropy  
+pandas
+
+External required software for the SkyFlat and photometry portion of the pipelines includes 
+
+> Swarp (https://www.astromatic.net/software/swarp) 
+
+and
+
+> Sextractor (https://www.astromatic.net/software/sextractor)
+
 **Rename Files** 
 ```python
 python3 calib.py -r --rename
