@@ -43,17 +43,17 @@ with the -r (--rename) flag moves all raw data obtained from the KOA website (ht
     ├── Objects               
     │   └── ob151395          
     │       ├── 2018-08-05 
-    │           ├── Kob151395Ks1.fits        # K ob151395 Ks 1 (Keck, Object Name, Filter, Image Number)
-    │           ├── Kob151395Ks2.fits        # where Object Name is the microlensing convention:
-    │           └── Kob151395Ks3.fits        # ob 15 1395 (telescope, year, event)
+    │           ├── KOB151395Ks1.fits        # K ob151395 Ks 1 (Keck, Object Name, Filter, Image Number)
+    │           ├── KOB151395Ks2.fits        # where Object Name is the microlensing convention:
+    │           └── KOB151395Ks3.fits        # ob 15 1395 (telescope, year, event)
     │       └── 2018-08-06  
-    │           ├── Kob151395NKs1.fits       # As above except the "N" denotes this is an image taken
-    │           ├── Kob151395NKs2.fits       # with the NARROW camera. Images without this signifier are taken
-    │           └── Kob151395NKs3.fits       # with the WIDE camera.
+    │           ├── KOB151395NKs1.fits       # As above except the "N" denotes this is an image taken
+    │           ├── KOB151395NKs2.fits       # with the NARROW camera. Images without this signifier are taken
+    │           └── KOB151395NKs3.fits       # with the WIDE camera.
     │   └── mb10353          
     │       └── 2018-08-07   
-    │           ├── Kmb10353H1.fits          
-    │           └── Kmb10353H2.fits          
+    │           ├── KMB10353H1.fits          
+    │           └── KMB10353H2.fits          
     ├── Skys                  
     │   ├── 2018-08-05  
     │       ├── KskyNarrowKs1.fits            # K skyNarrow Ks 1 (Keck, Sky Type, Filter, Image Number)
@@ -81,17 +81,18 @@ with the -r (--rename) flag moves all raw data obtained from the KOA website (ht
     ├── Objects               
     │   └── ob151395          
     │       ├── 2018-08-05 
-    │           ├── Kob151395Ks1.fits        
-    │           ├── ...        
-    │           ├── Kob151395Ks10.fits 
-    │           ├── cor_Kob151395Ks1.fits          # STEP 1: Individual Frames Corrected for Distortion
-    │           ├── ...              
-    │           ├── cor_Kob151395Ks10.fits   
-    │           ├── ast_cor_Kob151395Ks1.fits      # STEP 2: Astrometry Corrected Frames
-    │           ├── ...              
-    │           ├── ast_cor_Kob151395Ks10.fits   
-    │           ├── coadd_Kob151395Ks.fits         # STEP 3: Coadded master frame with SWARP
-    │           └── sex_Kob151395Ks.tst            # STEP 4: Photometry TST File Obtained with SEXTRACTOR
+    │           ├── Source
+    │               ├── KOB151395Ks1.fits        
+    │               ├── ...        
+    │               ├── KOB151395Ks10.fits 
+    │               ├── cor_KOB151395Ks1.fits          # STEP 1: Individual Frames Corrected for Distortion
+    │               ├── ...              
+    │               ├── cor_KOB151395Ks10.fits   
+    │               ├── ast_cor_KOB151395Ks1.fits      # STEP 2: Astrometry Corrected Frames
+    │               ├── ...              
+    │               └── ast_cor_KOB151395Ks10.fits   
+    │           ├── cac_KOB151395Ks.fits         # STEP 3: Coadded master frame with SWARP
+    │           └── sex_cac_KOB151395Ks.tst            # STEP 4: Photometry TST File Obtained with SEXTRACTOR
     ├── Skys                  
     │   ├── 2018-08-05  
     │       ├── KskyNarrowKs1.fits 
