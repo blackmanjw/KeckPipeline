@@ -6,8 +6,7 @@ from datetime import datetime, timedelta
 
 pd.options.display.max_rows = 4000
 
-## Rename Files, Move and Create Folders
-## This function takes the raw downloads from the KOA website and sorts the files into Objects, Darks, Flats and Skys.
+## Rename Files, Move and Create Folders from the KOA website and sorts the files into Objects, Darks, Flats and Skys.
 ## Objects are sorted by object, then date. The calibration files are just sorted by date.
 ## Run with "python3 calib.py -r -s <source_folder>" where <soure_folder> is the path to your data you wish to move and rename.
 
@@ -16,6 +15,7 @@ def rename(dir):
     for file in os.listdir("./" + dir):  # put in your path directory
         if file.endswith(".fits"):  # what does the file end with?
             data.append(os.path.join(dir, file))
+## This function takes the raw downloads
 
     n = len(data)
     obj, itime, filt, renamed, datemod, count, flatmod, mod = ([] for i in range(8))
@@ -47,27 +47,29 @@ def rename(dir):
             os.makedirs(os.path.dirname('Objects/' + header['OBJECT'] + '/' + str(datemod[i]) + '/'), exist_ok=True)
         os.rename(data[i], renamed[i])
 
-        # Name,Date,Number,Ext=line.split(".")
+    # Name,Date,Number,Ext=line.split(".")
     lists = [data, mod, datemod, itime, flatmod, renamed]
     data_headers = pd.concat([pd.Series(x) for x in lists], axis=1)
     print(data_headers)
 
     return data_headers
 
-
-
 ## Create *.list file of darkframes
 
 def darklist(dir):
 
-    darkfiles = []
-    for file in os.listdir("./" + dir):
-        if file.endswith(".fits"):
-            darkfiles.append(os.path.join(dir, file))
+    dir=[x[0] for x in os.walk('Darks')]
 
-    with open(dir + '/dark.list', 'w') as f:
-        for item in darkfiles:
-            f.write("%s\n" % item)
+    n=len(dir)
+    darkfiles = []
+    for i in range (1,n):
+        for file in os.listdir(dir[i]):
+            if file.endswith(".fits"):
+                darkfiles.append(os.path.join(dir[i], file))
+        with open(dir[i] + '/dark.list', 'w') as f:
+            for item in darkfiles:
+                f.write("%s\n" % item)
+
     return darkfiles
 
 ### Combine Dark Frames
@@ -122,6 +124,8 @@ def flatlist(dir):
     return flats
 
 def flatcombine():
+
+    flats = flatlist()
     mediandark = darks()
     domeflatfiles = []
     for file in os.listdir("./DomeFlats"):
@@ -202,3 +206,13 @@ def domeflat():
     fits.writeto('Calib/ksflat' + '_' + Date + ".fits", ksflat, header, overwrite=True)
 
     return ksflat
+
+
+## COMBINE SKY FLATS
+
+def skyflat()
+
+
+
+
+    return
