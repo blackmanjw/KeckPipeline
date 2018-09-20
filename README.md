@@ -42,7 +42,7 @@ python3 calib.py -r -s folder
 
 with the -r (--rename) flag moves all raw data obtained from the KOA website (https://koa.ipac.caltech.edu/cgi-bin/KOA/nph-KOAlogin) from a source folder into a more convenient directory structure. The source folder can be specificed using the '-s' flag. The resulting structure is shown below:
 
-**Raw Data Folder Structure**
+### Raw Data Folder Structure
     
     ├── Darks 
     │   ├── 2018-08-05                
@@ -80,7 +80,7 @@ with the -r (--rename) flag moves all raw data obtained from the KOA website (ht
     ├── calib.py
     └── tools.py
 
-**Processed Data Folder Structure**
+### Processed Data Folder Structure
 
     ├── Darks 
     │   ├── 2018-08-05                
