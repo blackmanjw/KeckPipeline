@@ -91,7 +91,7 @@ with the -r (--rename) flag moves all raw data obtained from the KOA website (ht
     │               ├── ast_cor_KOB151395Ks1.fits      # STEP 2: Astrometry Corrected Frames
     │               ├── ...              
     │               └── ast_cor_KOB151395Ks10.fits   
-    │           ├── cac_KOB151395Ks.fits         # STEP 3: Coadded master frame with SWARP
+    │           ├── coadd_ac_KOB151395Ks.fits         # STEP 3: Coadded master frame with SWARP
     │           └── sex_cac_KOB151395Ks.tst            # STEP 4: Photometry TST File Obtained with SEXTRACTOR
     ├── Skys                  
     │   ├── 2018-08-05  
