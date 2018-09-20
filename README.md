@@ -69,16 +69,14 @@ with the -r (--rename) flag moves all raw data obtained from the KOA website (ht
     │       ├── KDark30sec1.fits           
     │       ├── ...
     │       └── KDark30sec10.fits 
-    │   ├── KDark30sec0805.fits              # Combined Dark frame with Date.          
-    │   └── KDark30sec0806.fits              
+    │   └── KDark30sec0805.fits              # Combined Dark frame with Date.                   
     ├── Flats               
     │   ├── 2018-08-05                
     │       ├── KNarrowLampOffKs1.fits        
     │       ├── ...
     │       └── KWideLampOnKs2.fits 
     │   ├── KFlatKs0805.fits                 # Combined Flats with Date. Images are for the wide camera unless
-    │   ├── KFlatH0805.fits                  # signified with an 'N'
-    │   ├── KFlatJ0805.fits                  
+    │   ├── KFlatH0805.fits                  # signified with an 'N'            
     │   └── KFlatNKs0805.fits                      
     ├── Objects               
     │   └── ob151395          
