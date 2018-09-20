@@ -21,6 +21,8 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--config', type=str, nargs=1, help='usage -c /path/to/config.json')
     parser.add_argument('-l', '--list', type=str, nargs=1, help='usage -l file.list')
     parser.add_argument('-m', '--movedata', action="store_true")
+    parser.add_argument('-r', '--rename', action="store_true")
+    parser.add_argument('-s', '--source', type=str, nargs=1, help='usage -c /path/to/config.json')
     parser.add_argument('-fs', '--flatsubtract', action="store_true")
     parser.add_argument('-dl', '--darklist', action="store_true")
     parser.add_argument('-fl', '--flatlist', action="store_true")
@@ -41,6 +43,12 @@ if __name__ == "__main__":
         config.update({'dark_subtract': True})
     if args.darklist:
         tools.darklist('Darks')
+    if args.source is None:
+        dir='Data'
+    else:
+        dir=args.source[0]
+    if args.rename:
+        tools.rename(dir)
     #else:
     #    tools.darklist(args.darklist[0])
     if args.flatlist:
