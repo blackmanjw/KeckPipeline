@@ -6,25 +6,47 @@ Authors : Joshua Blackman, joshua.blackman@utas.edu.au;
 
 This is a pipeline for performing calibration corrections on NIRC2 images obtained on the Keck II telescope.
 
-# Documentation and Installation
+## Installation
 
 
-### Requirements
+#### Requirements
 
-Required Python packages are listed in requirements.txt.
-
-They include:
+KECKPipeline runs on Python3. You will need pip3 or you can choose to manually install the packages. Required Python packages are listed in requirements.txt, and include:
 
 astropy  
 pandas
 
-External required software for the SkyFlat and photometry portion of the pipelines includes 
+They can be installed by running
 
-> Swarp (https://www.astromatic.net/software/swarp) 
+```bash
+pip install -r requirements.txt
+```
 
-and
+This pipeline includes the sewpy Sextractor frontend for python in the folder /utilities/sewpy-master (https://github.com/megalut/sewpy). Install this package with the command:
+```bash
+python setup.py install --user
+```
+KECKPipeline utilises the Swarp and Sextractor packages developed by Emmanuel Bertin. The source for these packages (and installation instructions) can be found on https://www.astromatic.net.
 
-> Sextractor (https://www.astromatic.net/software/sextractor)
+#### Installation
+
+Download the repository and place it in your desired position on your hard drive. 
+
+Run
+./configure  
+make
+ 
+../KeckPipeline/utilities/swarp-2.38.0/./
+
+On a Mac you may need to install fftw which is a requirement for Sextractor.  
+
+To get Sextractor wokring
+
+wget http://www.netlib.org/lapack/lapack-3.4.2.tgz
+
+./configure --enable-threads
+
+## Documentation
 
 **Rename Files** 
 ```python
@@ -32,7 +54,7 @@ python3 calib.py -r --rename
 ```
 **Combine Dark Frames**
 
-# Naming Conventions
+##Naming Conventions
 
 Running
 
