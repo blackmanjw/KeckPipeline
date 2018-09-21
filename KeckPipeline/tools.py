@@ -56,6 +56,33 @@ def rename(dir):
 
 ## Create *.list file of darkframes
 
+'''
+import astromatic_wrapper as aw
+import glob
+
+kwargs = {
+    'code': 'SWarp',
+    'config': {
+        'SUBTRACT_BACK': 'N',
+        'IMAGEOUT_NAME': 'darks.fits',
+        'RESCALE_WEIGHTS': 'N',
+        'RESAMPLE': 'N',
+        'INTERPOLATE': 'Y',
+        'BLANK_BADPIXELS': 'N', 
+    },
+    'temp_path': '.',
+    'config_file': '../../config/config.swarp'
+}
+
+darks=glob.glob('../2018-08-07/K*30*.fits')
+print(darks)
+swarp = aw.api.Astromatic(**kwargs)
+#sextractor = aw.api.Astromatic(**kwargs)
+swarp.run(darks)
+'''
+
+
+
 def darklist(dir):
 
     dir=[x[0] for x in os.walk('Darks')]
@@ -75,6 +102,8 @@ def darklist(dir):
 ### Combine Dark Frames
 
 def darkcombine():
+
+    darkfiles=darklist(dir)
 
     dark_list = [line.rstrip('\n') for line in open('Darks/dark.list')]
 
