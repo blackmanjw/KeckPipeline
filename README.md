@@ -1,8 +1,9 @@
 # KECKPipeline
 
-Authors : Joshua Blackman, joshua.blackman@utas.edu.au;
-	      Aikaterini Vandorou, aikaterini.vandorou@utas.edu.au;
-	      Jean-Phillipe Beaulieu
+Authors :  
+Joshua Blackman, joshua.blackman@utas.edu.au  
+	      Aikaterini Vandorou, aikaterini.vandorou@utas.edu.au  
+	      Jean-Phillipe Beaulieu, beaulieu@iap.fr
 
 This is a pipeline for performing calibration corrections on NIRC2 images obtained on the Keck II telescope.
 
