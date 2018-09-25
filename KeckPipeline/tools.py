@@ -1,7 +1,10 @@
 import os
 from astropy.io import fits
+import astromatic_wrapper as aw
+import glob
 import pandas as pd
 import numpy as np
+from shutil import copyfile
 from datetime import datetime, timedelta
 
 pd.options.display.max_rows = 4000
@@ -10,15 +13,16 @@ pd.options.display.max_rows = 4000
 ## Objects are sorted by object, then date. The calibration files are just sorted by date.
 ## Run with "python3 calib.py -r -s <source_folder>" where <soure_folder> is the path to your data you wish to move and rename.
 
-def rename(dir):
+def rename(source_dir,dest_dir):
     data = []
-    for file in os.listdir("./" + dir):  # put in your path directory
+    for file in os.listdir("./" + source_dir):  # put in your path directory
         if file.endswith(".fits"):  # what does the file end with?
-            data.append(os.path.join(dir, file))
+            data.append(os.path.join(source_dir, file))
 ## This function takes the raw downloads
 
     n = len(data)
-    obj, itime, filt, renamed, datemod, count, flatmod, mod = ([] for i in range(8))
+    obj, itime, filt, renamed, datemod, count, flatmod, mod = ([] for i in range(9))
+    os.makedirs(os.path.dirname('Source/', exist_ok=True))
     for i in range(0, n):
         header = fits.getheader(data[i])
         Name, Date, Number, Ext = data[i].split(".")
@@ -41,10 +45,11 @@ def rename(dir):
                 count) + ".fits"))
             os.makedirs(os.path.dirname('Skys/' + str(datemod[i]) + '/'), exist_ok=True)
         else:
-            renamed.append(('Objects/' + header['OBJECT'] + '/' + str(datemod[i]) + '/' + 'K' + header['OBJECT'] +
+            renamed.append(('Objects/' + header['OBJECT'].upper() + '/' + str(datemod[i]) + '/' + 'K' + header['OBJECT'].upper() +
                             header['FWINAME'] + str(
                         count) + ".fits"))
             os.makedirs(os.path.dirname('Objects/' + header['OBJECT'] + '/' + str(datemod[i]) + '/'), exist_ok=True)
+        copyfile(data[i],)
         os.rename(data[i], renamed[i])
 
     # Name,Date,Number,Ext=line.split(".")
@@ -56,32 +61,32 @@ def rename(dir):
 
 ## Create *.list file of darkframes
 
-'''
-import astromatic_wrapper as aw
-import glob
+def swarp():
 
-kwargs = {
-    'code': 'SWarp',
-    'config': {
-        'SUBTRACT_BACK': 'N',
-        'IMAGEOUT_NAME': 'darks.fits',
-        'RESCALE_WEIGHTS': 'N',
-        'RESAMPLE': 'N',
-        'INTERPOLATE': 'Y',
-        'BLANK_BADPIXELS': 'N', 
-    },
-    'temp_path': '.',
-    'config_file': '../../config/config.swarp'
-}
+    data = []
+    for file in os.listdir("./" + Darks):  # put in your path directory
+        if file.endswith(".fits"):  # what does the file end with?
+            data.append(os.path.join(Darks, file))
+    print(data)
+    kwargs = {
+        'code': 'SWarp',
+        'config': {
+            'SUBTRACT_BACK': 'N',
+            'IMAGEOUT_NAME': 'darks.fits',
+            'RESCALE_WEIGHTS': 'N',
+            'RESAMPLE': 'N',
+            'INTERPOLATE': 'Y',
+            'BLANK_BADPIXELS': 'N',
+        },
+        'temp_path': '.',
+        'config_file': '../../config/config.swarp'
+    }
 
-darks=glob.glob('../2018-08-07/K*30*.fits')
-print(darks)
-swarp = aw.api.Astromatic(**kwargs)
-#sextractor = aw.api.Astromatic(**kwargs)
-swarp.run(darks)
-'''
-
-
+    darks=glob.glob('../2018-08-07/K*30*.fits')
+    print(darks)
+    swarp = aw.api.Astromatic(**kwargs)
+    #sextractor = aw.api.Astromatic(**kwargs)
+    swarp.run(darks)
 
 def darklist(dir):
 
