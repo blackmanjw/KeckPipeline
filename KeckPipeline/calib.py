@@ -20,15 +20,15 @@ if __name__ == "__main__":
 
     parser.add_argument('-c', '--config', type=str, nargs=1, help='usage -c /path/to/config.json')
     parser.add_argument('-l', '--list', type=str, nargs=1, help='usage -l file.list')
-    parser.add_argument('-m', '--movedata', action="store_true")
     parser.add_argument('-r', '--rename', action="store_true")
-    parser.add_argument('-s', '--source', type=str, nargs=1, help='usage -c /path/to/config.json')
+    parser.add_argument('-s', '--source', type=str, nargs=2, help='usage -c /path/to/config.json')
     parser.add_argument('-fs', '--flatsubtract', action="store_true")
     parser.add_argument('-dl', '--darklist', action="store_true")
     parser.add_argument('-fl', '--flatlist', action="store_true")
     parser.add_argument('-ds', '--darksubtract', action="store_true")
     parser.add_argument('-dc', '--darkcombine', action="store_true")
     parser.add_argument('-fc', '--flatcombine', action="store_true")
+    parser.add_argument('-sky', '--skycombine', action="store_true")
     parser.add_argument('-t', '--test', action="store_true")
 
     args = parser.parse_args()
@@ -46,9 +46,10 @@ if __name__ == "__main__":
     if args.source is None:
         dir='Data'
     else:
-        dir=args.source[0]
+        source_dir=args.source[0]
+        dest_dir = args.source[1]
     if args.rename:
-        tools.rename(dir)
+        tools.rename(source_dir,dest_dir)
     #else:
     #    tools.darklist(args.darklist[0])
     if args.flatlist:
