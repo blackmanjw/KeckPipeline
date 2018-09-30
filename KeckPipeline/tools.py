@@ -3,17 +3,17 @@
 #                                                                          #
 #                             REVISION: 0.0.1                              #
 #                                                                          #
-#                           Joshua Blackman                                #
-#                         Aikaterini Vandorou                              #
-#                        Univeristy of Tasmania                            #
+#                             Joshua Blackman                              #
+#                           Aikaterini Vandorou                            #
+#                          Univeristy of Tasmania                          #
 #                                                                          #
-#                       Last Change: Oct 2018                              #
+#                          Last Change: Oct 2018                           #
 ############################################################################
 #
 #
 # This is a pipeline to reduce AO images from the NIRC2 imager on KECK II.
 #
-
+#
 
 import os
 from astropy.io import fits
@@ -27,9 +27,16 @@ from datetime import datetime, timedelta
 
 # ------------------------------ USEFUL FUNCTIONS -----------------------------
 
-def keep_going():
+def keep_going(text="Do you wish to continue? Answer Y or N."):
     """
-        LLALALALALALALALALALALALLALALLALA
+    This function asks the user whether or not they want the script to proceed.
+
+    The user needs to type 'Y' (no quotes), else the script will abort.
+
+    Parameters
+    ----------
+    text: str
+        Modify text to present to the user. Default is "Do you wish to continue? Answer Y or N."
     """
     answer = input("This script will backup the original folder to dest_dir/Source/** "
                    "and remove the original folder. It will make copies of the "
@@ -49,10 +56,26 @@ def keep_going():
 
 def rename(source_dir,dest_dir):
     """
-        Rename Files, Move and Create Folders from the KOA website and sorts the files into Objects, Darks, Flats and Skys.
-        Objects are sorted by object, then date. The calibration files are just sorted by date.
-        Run with "python3 calib.py -r -s <source_folder>" where <soure_folder> is the path to your data you wish to move and rename.
+        This function takes the downloaded files from the KOA website, renames them and sorts into folders named Objects, Darks, Flats and Skys.
+        Objects are sorted by object name (read from the fits header), then date. Calibration files are sorted by date.
+        This function will DELETE the original folder but backup the folder into a directory called Source.
+        Before proceeding the function will ask the user if they wish to proceed.
 
+        As with the other functions in tools.py, this function is run via calib.py.
+
+        This function can be run with "python3 calib.py -r -s <source_dir> <dest_dir>" where <soure_folder> is the path to your data you wish to move and rename.
+
+        Parameters
+        ----------
+        source_dir: str
+            Define the folder where the source files are located.
+        dest_dir: str
+            Define the output folder. The Object, Darks etc. folders will be created under this parent.
+
+        Returns
+        -------
+        data_headers
+            Table with columns showing input files, output files, object name and exposure time.
     """
     keep_going()
 
@@ -63,7 +86,6 @@ def rename(source_dir,dest_dir):
     for file in os.listdir("./" + source_dir):  # put in your path directory
         if file.endswith(".fits"):  # what does the file end with?
             data.append(os.path.join(source_dir, file))
-## This function takes the raw downloads
 
     n = len(data)
     obj, itime, filt, renamed, datemod, count, flatmod, mod = ([] for i in range(8))
