@@ -27,7 +27,6 @@ from datetime import datetime, timedelta
 
 # ------------------------------ USEFUL FUNCTIONS -----------------------------
 
-
 def keep_going(text="Do you wish to continue? Answer Y or N."):
     """
         This function asks the user whether or not they want the script to proceed.
@@ -49,7 +48,6 @@ def keep_going(text="Do you wish to continue? Answer Y or N."):
 
 
 # ------------------------------ PIPELINE FUNCTIONS -----------------------------
-
 
 def rename(source_dir,dest_dir):
     """
