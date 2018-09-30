@@ -29,19 +29,16 @@ from datetime import datetime, timedelta
 
 def keep_going(text="Do you wish to continue? Answer Y or N."):
     """
-    This function asks the user whether or not they want the script to proceed.
+        This function asks the user whether or not they want the script to proceed.
 
-    The user needs to type 'Y' (no quotes), else the script will abort.
+        The user needs to type 'Y' (no quotes), else the script will abort.
 
-    Parameters
-    ----------
-    text: str
+        Parameters
+        ----------
+        text: str
         Modify text to present to the user. Default is "Do you wish to continue? Answer Y or N."
-    """
-    answer = input("This script will backup the original folder to dest_dir/Source/** "
-                   "and remove the original folder. It will make copies of the "
-                   "original files and rename them in directories called Darks, Flats, etc. "
-                   "Do you wish to continue? Answer Y or N.")
+        """
+    answer = input(text)
 
     if answer == 'Y':
         print("The script is now running....")
@@ -77,7 +74,7 @@ def rename(source_dir,dest_dir):
         data_headers
             Table with columns showing input files, output files, object name and exposure time.
     """
-    keep_going()
+    keep_going(text="This script will backup the original folder to dest_dir/Source/** and remove the original folder. It will make copies of the  original files and rename them in directories called Darks, Flats, etc. Do you wish to continue? Answer Y or N.")
 
     ## Backup Original Source Folder
     shutil.copytree(source_dir, dest_dir + '/Source')
