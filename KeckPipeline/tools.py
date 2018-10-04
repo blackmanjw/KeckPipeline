@@ -47,6 +47,39 @@ def keep_going(text="Do you wish to continue? Answer Y or N."):
         raise SystemExit
 
 
+def swarp(files, output='output.fits', celestial_type='PIXEL'):
+    """
+        Run SWARP!
+
+        Parameters
+        ----------
+        files: list
+            A list of files to swarp.
+        output: str
+            Path and filename for the combined output *.fits file.
+        celestial_type: str
+            Define celetial type as in the swarp config/config.swarp file.
+            Options are NAITVE, PIXEL, EQUATORIAL, GALACTIC, ECLIPTIC or SUPERGALACTIC.
+    """
+    kwargs = {
+        'code': 'SWarp',
+        'config': {
+            'SUBTRACT_BACK': 'N',
+            'IMAGEOUT_NAME': output,
+            'RESCALE_WEIGHTS': 'N',
+            'RESAMPLE': 'N',
+            'CELESTIAL_TYPE': celestial_type,
+            'INTERPOLATE': 'N',
+            'BLANK_BADPIXELS': 'N',
+        },
+        'temp_path': '.',
+        'config_file': 'config/config.swarp'
+    }
+
+    swarp = aw.api.Astromatic(**kwargs)
+    swarp.run(files)
+
+
 # ------------------------------ PIPELINE FUNCTIONS -----------------------------
 
 def rename(source_dir,dest_dir):
@@ -124,7 +157,60 @@ def rename(source_dir,dest_dir):
 
 ### Combine Dark Frames
 
-def darkcombine():
+def darkcombine(darks_dir='Darks/'):
+    """
+        This function combines Dark frames for each date and exposure time as per the filestructure created by "Rename".
+
+        Parameters
+        ----------
+        darks_dir: str
+            Define the folder where the dark files are located.
+
+        Returns
+        -------
+        ????
+    """
+
+    # Make list of all Dark Directories
+    darkdir = glob(darks_dir + '*/')
+    print(darkdir)
+
+    ## For each subdirectory in darkdir, combine the Dark Files (ATM only 30sec)
+    for d in darkdir:
+        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS']
+        images = ImageFileCollection(d, keywords=keys)
+
+        matches5 = (images.summary['ITIME'] < 6)
+        dark5 = [d + x for x in images.summary['file'][matches5].tolist()]
+        if dark5:
+            print(dark5[2])
+            swarp(dark5, output=darks_dir + 'Dark5sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
+
+        matches10 = (images.summary['ITIME'] == 10)
+        dark10 = [d + x for x in images.summary['file'][matches10].tolist()]
+        if dark10:
+            swarp(dark10, output=darks_dir + 'Dark10sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
+
+        matches15 = (images.summary['ITIME'] == 15)
+        dark15 = [d + x for x in images.summary['file'][matches15].tolist()]
+        if dark15:
+            swarp(dark15, output=darks_dir + 'Dark15sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
+
+        matches30 = (images.summary['ITIME'] == 30)
+        dark30 = [d + x for x in images.summary['file'][matches30].tolist()]
+        if dark30:
+            swarp(dark30, output=darks_dir + 'Dark30sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
+
+        matches60 = (images.summary['ITIME'] == 60)
+        dark60 = [d + x for x in images.summary['file'][matches60].tolist()]
+        if dark60:
+            swarp(dark60, output=darks_dir + 'Dark60sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
+        # print(y)
+
+
+
+
+def darkcombine_old():
     """
         LLALALALALALALALALALALALLALALLALA
     """
