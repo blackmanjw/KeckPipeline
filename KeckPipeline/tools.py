@@ -245,37 +245,6 @@ def darkcombine_old():
     return mediandark
 
 
-
-
-## Create *.list file of darkframes
-
-def swarp():
-
-    data = []
-    for file in os.listdir("./" + Darks):  # put in your path directory
-        if file.endswith(".fits"):  # what does the file end with?
-            data.append(os.path.join(Darks, file))
-    print(data)
-    kwargs = {
-        'code': 'SWarp',
-        'config': {
-            'SUBTRACT_BACK': 'N',
-            'IMAGEOUT_NAME': 'darks.fits',
-            'RESCALE_WEIGHTS': 'N',
-            'RESAMPLE': 'N',
-            'INTERPOLATE': 'Y',
-            'BLANK_BADPIXELS': 'N',
-        },
-        'temp_path': '.',
-        'config_file': '../../config/config.swarp'
-    }
-
-    darks=glob.glob('../2018-08-07/K*30*.fits')
-    print(darks)
-    swarp = aw.api.Astromatic(**kwargs)
-    #sextractor = aw.api.Astromatic(**kwargs)
-    swarp.run(darks)
-
 def darklist(dir):
 
     dir=[x[0] for x in os.walk('Darks')]
