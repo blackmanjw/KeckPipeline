@@ -71,7 +71,7 @@ def swarp(files, output='output.fits', celestial_type='PIXEL'):
             'CELESTIAL_TYPE': celestial_type,
             'INTERPOLATE': 'N',
             'BLANK_BADPIXELS': 'N',
-            #'COPY_KEYWORDS': ['OBJECT', 'ITIME', 'CAMNAME', 'FWINAME', 'DATE-OBS', 'FLSPECTR', 'HISTORY'],
+            'COPY_KEYWORDS': 'OBJECT,CAMNAME,FWINAME,ITIME,DATE-OBS,FLSPECTR,HISTORY'
         },
         'temp_path': '.',
         'config_file': 'config/config.swarp'
@@ -290,18 +290,6 @@ def darksubtract(dir='Flats/*', master_dark='Darks/Dark60sec0807.fits'):
             dflat.write(directory + '/d' + fname, overwrite=True)
 
 
-def swarpfilter(d, dir, directory, images, keys, filter, lamp, camera, done, output):
-    """
-        This function runs a swarp on a subset of images from an ImageFileCollection according to the chosen parameters
-        (Filter, Band, Camera etc.) This function is only used in other functions like flatcombine.
-    """
-    filt = images.files_filtered(FWINAME=filter, FLSPECTR=lamp, CAMNAME=camera, HISTORY=done)
-    files = [d + x for x in filt.tolist()]
-    print(files)
-    if files:
-        swarp(files, output=directory + '/' + output + '.fits')
-
-
 def flatcombine(dir='Flats/*/dark_subtracted/'):
     """
         This function subtracts the darks from files in a give directory.
@@ -348,3 +336,17 @@ def flatcombine(dir='Flats/*/dark_subtracted/'):
                     output='cKWideLampOnJ')
         swarpfilter(d, dir, directory, images, keys, filter='J', lamp='off', camera='wide', done='Dark Subtracted',
                     output='cKWideLampOffJ')
+
+
+# ------------------------------ REQUIRED FUNCTIONS -----------------------------
+
+def swarpfilter(d, dir, directory, images, keys, filter, lamp, camera, done, output):
+    """
+        This function runs a swarp on a subset of images from an ImageFileCollection according to the chosen parameters
+        (Filter, Band, Camera etc.) This function is only used in other functions like flatcombine.
+    """
+    filt = images.files_filtered(FWINAME=filter, FLSPECTR=lamp, CAMNAME=camera, HISTORY=done)
+    files = [d + x for x in filt.tolist()]
+    print(files)
+    if files:
+        swarp(files, output=directory + '/' + output + '.fits')
