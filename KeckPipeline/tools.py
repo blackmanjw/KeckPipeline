@@ -71,13 +71,52 @@ def swarp(files, output='output.fits', celestial_type='PIXEL'):
             'CELESTIAL_TYPE': celestial_type,
             'INTERPOLATE': 'N',
             'BLANK_BADPIXELS': 'N',
+            #'COPY_KEYWORDS': ['OBJECT', 'ITIME', 'CAMNAME', 'FWINAME', 'DATE-OBS', 'FLSPECTR', 'HISTORY'],
         },
         'temp_path': '.',
         'config_file': 'config/config.swarp'
-    }
+    }d
 
     swarp = aw.api.Astromatic(**kwargs)
     swarp.run(files)
+
+
+def sex(files, output='output.cat', phot_aperture=10, back_size=256):
+    """
+        Run SExtractor!
+
+        Parameters
+        ----------
+        files: list
+            A list of files to SExtractor.
+        output: str
+            Path and filename for the catalog output  *.cat file.
+        phot_aperture:
+            Magnitude aperture diameter in pixels.
+        back_size:
+            Background mesh size in pixels.
+    """
+    kwargs = {
+        'code': 'SExtractor',
+        'config': {
+            'CATALOG_NAME': output,
+            'FILTER': 'N',
+            'CLEAN': 'Y',
+            'MASK_TYPE': 'CORRECT',
+            'PHOT_APERTURES': str(phot_aperture),
+            'DETECT_MINAREA': str(7),
+            'DETECT_THRESH': str(7),
+            'ANALYSIS_THRESH': str(7),
+            'BACK_SIZE': str(back_size),
+        },
+        # Output parameters
+        'params': ['NUMBER', 'XWIN_IMAGE', 'YWIN_IMAGE', 'MAG_AUTO', 'FLUX_APER', 'FLUXERR_APER'],
+        'temp_path': '.',
+        'config_file': 'config/config.sex'
+    }
+
+    sex = aw.api.Astromatic(**kwargs)
+    sex.run(files)
 
 
 # ------------------------------ PIPELINE FUNCTIONS -----------------------------
@@ -208,162 +247,104 @@ def darkcombine(darks_dir='Darks/'):
         # print(y)
 
 
-
-
-def darkcombine_old():
+def darksubtract(dir='Flats/*', master_dark='Darks/Dark60sec0807.fits'):
     """
-        LLALALALALALALALALALALALLALALLALA
+        This function subtracts the darks from files in a give directory.
+
+        Parameters
+        ----------
+        ????
+
+        Returns
+        -------
+        ????
     """
-    darkfiles=darklist(dir)
+    # master_dark = input("Which Master Dark in the /Darks/ folder (or otherwise) would you like to use?")
 
-    dark_list = [line.rstrip('\n') for line in open('Darks/dark.list')]
+    # if answer == 'Y':
+    #    print("The script is now running....")
+    # else:
+    #    print("You have chosen to quit this program")
+    #    raise SystemExit
 
-    print("\n" 'DARK Source Files:')
+    mdark = CCDData.read(master_dark, unit="adu")
 
-    print("\n".join(darkfiles))
+    for d in glob(dir):
+        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+        images = ImageFileCollection(d, keywords=keys, glob_exclude='d*', glob_include='*.fits')
 
-    print("\n" 'DARK Exposure Times:')
+        directory = d + '/dark_subtracted'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    darksexp = []
-    for line in dark_list:
-        header = fits.getheader(line)
-        darksexp.append(header['ITIME'])
-        print(header['ITIME'])
-
-    darks = []
-    for file in dark_list:
-        darks.append(fits.getdata(file))
-
-    mediandark = np.median(darks, axis=0)
-
-    header = fits.getheader(dark_list[0])
-
-    header['HISTORY'] = 'Median combined'
-
-    fits.writeto('dark_300718_30s.fits', mediandark, header, overwrite=True)
-
-    return mediandark
-
-
-def darklist(dir):
-
-    dir=[x[0] for x in os.walk('Darks')]
-
-    n=len(dir)
-    darkfiles = []
-    for i in range (1,n):
-        for file in os.listdir(dir[i]):
-            if file.endswith(".fits"):
-                darkfiles.append(os.path.join(dir[i], file))
-        with open(dir[i] + '/dark.list', 'w') as f:
-            for item in darkfiles:
-                f.write("%s\n" % item)
-
-    return darkfiles
+        # Read in all files from /FLATS/ subdirectories and subtract the master_dark. The output is stored in 'dflat'.
+        for flat, fname in images.hdus(return_fname=True):
+            meta = flat.header
+            meta['FILENAME'] = fname
+            flat_exposure = flat.header['ITIME']
+            flats = CCDData(data=flat.data.astype('float32'), meta=meta, unit="adu")
+            dflat = (ccdproc.subtract_dark(flats, mdark, exposure_time='ITIME',
+                                           exposure_unit=u.second,
+                                           add_keyword={'HISTORY': 'Dark Subtracted'},
+                                           scale=True))
+            dflat.write(directory + '/d' + fname, overwrite=True)
 
 
-## SUBTRACT DARK FRAMES FROM DOME FLATS
-
-## Create List of Dome Flats
-
-## Create *.list file of Dome Flats
-
-def flatlist(dir):
-
-    flats = []
-    for file in os.listdir("./" + dir):
-        if file.endswith(".fits"):
-            flats.append(os.path.join(dir, file))
-
-    with open(dir + '/flats.list', 'w') as f:
-        for item in flats:
-            f.write("%s\n" % item)
-    return flats
-
-def flatcombine():
-
-    flats = flatlist()
-    mediandark = darks()
-    domeflatfiles = []
-    for file in os.listdir("./DomeFlats"):
-        if file.endswith(".fits"):
-            domeflatfiles.append(os.path.join("DomeFlats", file))
-
-    print("\n" 'DOME FLAT LampOFF Source Files:')
-    print("\n".join(domeflatfiles))
-
-    with open('DomeFlats/domeflat.list', 'w') as f:
-        for item in domeflatfiles:
-            f.write("%s\n" % item)
-
-    print("\n" 'DOME FLAT Exposure Times:')
-
-    for line in domeflatfiles:
-        header = fits.getheader(line)
-        print(header['ITIME'])
-
-    if not os.path.exists('./Calib'):
-        os.makedirs('./Calib')
-
-    domelist = [line.rstrip('\n') for line in open('DomeFlats/domeflat.list')]
-
-    domeflat_dark = []
-    n = 0
-    for line in domelist:
-        Name, Date, Number, Ext = line.split(".")
-        n = n + 1
-        domeflat_dark.append('Calib/' + Name[10:-3] + '_' + Date + '_' + 'dark' + '_' + str(n) + ".fits")
-
-    print("\n" 'DOME FLATS LampOFF (Bias Subtracted) Calib Output:')
-    print("\n".join(domeflat_dark))
-
-    with open('Calib/domeflat_dark.list', 'w') as f:
-        for item in domeflat_dark:
-            f.write("%s\n" % item)
-
-    n = len(domeflatfiles)
-
-    for i in range(0, n):
-        data, header = fits.getdata(domeflatfiles[i], header=True)
-        domeout = data - mediandark
-        header['HISTORY'] = 'Bias subtracted'
-        fits.writeto(domeflat_dark[i], domeout, header, overwrite=True)
-
-    return domeflat_dark, domeflatfiles
+def swarpfilter(d, dir, directory, images, keys, filter, lamp, camera, done, output):
+    """
+        This function runs a swarp on a subset of images from an ImageFileCollection according to the chosen parameters
+        (Filter, Band, Camera etc.) This function is only used in other functions like flatcombine.
+    """
+    filt = images.files_filtered(FWINAME=filter, FLSPECTR=lamp, CAMNAME=camera, HISTORY=done)
+    files = [d + x for x in filt.tolist()]
+    print(files)
+    if files:
+        swarp(files, output=directory + '/' + output + '.fits')
 
 
-## CREATE MASTER DOME FLATS
+def flatcombine(dir='Flats/*/dark_subtracted/'):
+    """
+        This function subtracts the darks from files in a give directory.
 
-##Ks BAND
+        Parameters
+        ----------
+        ????
 
-def domeflat():
-    domeflat_dark, domeflatfiles = flats()
-    Date, data_headers = movedata(startdate, numdays)
-    ksflat_onstack = []
-    ksflat_offstack = []
+        Returns
+        -------
+        ????
+    """
 
-    for file in domeflat_dark:
-        if "LampOn" in files:
-            data, header = fits.getdata(file, header=True)
-            ksflat_onstack.append(data)
-        if "LampOff" in file:
-            data, header = fits.getdata(file, header=True)
-            ksflat_offstack.append(data)
+    for d in glob(dir):
 
-    ksflat_on = np.median(ksflat_onstack, axis=0)
-    ksflat_off = np.median(ksflat_offstack, axis=0)
+        directory = "/".join(d.split('/')[0:2]) + '/swarped'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    ksflat = ksflat_on - ksflat_off
-    m = np.mean(ksflat)
-    ksflat = ksflat / m
+        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+        images = ImageFileCollection(d, keywords=keys, glob_include='d*.fits')
 
-    print(ksflat)
-
-    header['HISTORY'] = 'Combined and Normalized Flat Field'
-    fits.writeto('Calib/ksflat' + '_' + Date + ".fits", ksflat, header, overwrite=True)
-
-    return ksflat
-
-
-## COMBINE SKY FLATS
-
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp='on', camera='narrow', done='Dark Subtracted',
+                    output='cKNarrowLampOnH')
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp='off', camera='narrow', done='Dark Subtracted',
+                    output='cKNarrowLampOffH')
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp='on', camera='wide', done='Dark Subtracted',
+                    output='cKWideLampOnH')
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp='off', camera='wide', done='Dark Subtracted',
+                    output='cKWideLampOffH')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks', lamp='on', camera='narrow', done='Dark Subtracted',
+                    output='cKNarrowLampOnKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks', lamp='off', camera='narrow', done='Dark Subtracted',
+                    output='cKNarrowLampOffKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks', lamp='on', camera='wide', done='Dark Subtracted',
+                    output='cKWideLampOnKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks', lamp='off', camera='wide', done='Dark Subtracted',
+                    output='cKWideLampOffKs')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp='on', camera='narrow', done='Dark Subtracted',
+                    output='cNarrowLampOnJ')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp='off', camera='narrow', done='Dark Subtracted',
+                    output='cKNarrowLampOffJ')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp='on', camera='wide', done='Dark Subtracted',
+                    output='cKWideLampOnJ')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp='off', camera='wide', done='Dark Subtracted',
+                    output='cKWideLampOffJ')
