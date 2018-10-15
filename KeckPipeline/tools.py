@@ -75,7 +75,7 @@ def swarp(files, output='output.fits', celestial_type='PIXEL'):
         },
         'temp_path': '.',
         'config_file': 'config/config.swarp'
-    }d
+    }
 
     swarp = aw.api.Astromatic(**kwargs)
     swarp.run(files)
