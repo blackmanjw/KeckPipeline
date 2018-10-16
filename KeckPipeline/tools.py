@@ -247,7 +247,7 @@ def darkcombine(darks_dir='Darks/'):
         # print(y)
 
 
-def darksubtract(dir='Flats/*', master_dark='Darks/Dark60sec0807.fits'):
+def darksubtract(dir='Flats', master_dark='Darks/Dark60sec0807.fits'):
     """
         This function subtracts the darks from files in a give directory.
 
@@ -266,6 +266,13 @@ def darksubtract(dir='Flats/*', master_dark='Darks/Dark60sec0807.fits'):
     # else:
     #    print("You have chosen to quit this program")
     #    raise SystemExit
+
+    if dir == "Flats":
+        dir = 'Flats/*'
+    elif dir == "Skys":
+        dir = 'Skys/*'
+    elif dir =="Objects":
+        dir = 'Objects/*/*'
 
     mdark = CCDData.read(master_dark, unit="adu")
 
@@ -337,8 +344,100 @@ def flatcombine(dir='Flats/*/dark_subtracted/'):
         swarpfilter(d, dir, directory, images, keys, filter='J', lamp='off', camera='wide', done='Dark Subtracted',
                     output='cKWideLampOffJ')
 
+def flatprocess(dir='Flats/*/swarped/'):
+    """
 
-# ------------------------------ REQUIRED FUNCTIONS -----------------------------
+        Parameters
+        ----------
+        ????
+
+        Returns
+        -------
+        ????
+    """
+
+    for d in glob(dir):
+
+        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+        images = ImageFileCollection(d, keywords=keys, glob_include='c*.fits')
+        cameras = ['wide', 'narrow']
+        filters = ['Ks', 'H', 'J']
+        flats = []
+
+        for camera, filter in product(cameras, filters):
+
+            for hdu, fname in images.hdus(CAMNAME=camera, FWINAME=filter, return_fname=True):
+                meta = hdu.header
+                meta['filename'] = fname
+                flats.append(ccdproc.CCDData(data=hdu.data.astype('float32'), meta=meta, unit="adu"))
+            print(len(flats))
+            if flats:
+                MasterFlat = (ccdproc.subtract_dark(flats[1], flats[0], exposure_time='ITIME',
+                                                    exposure_unit=u.second,
+                                                    add_keyword={'HISTORY2': 'Lamp Off Subtracted'},
+                                                    scale=False))
+
+                # Normalize Flat
+                MasterFlat.data = MasterFlat / np.ma.average(MasterFlat)
+                MasterFlat.write(
+                    'Flats/KFlat' + MasterFlat.meta['CAMNAME'].title() + MasterFlat.meta['FWINAME'].title() +
+                    MasterFlat.meta['DATE-OBS'].split("-")[1] + MasterFlat.meta['DATE-OBS'].split("-")[2] + '.fits',
+                    overwrite=True)
+                flats[:] = []
+
+
+def flatcorrect(dir='Skys/*/dark_subtracted/', flatdate='2018-08-07'):
+    """
+
+        Parameters
+        ----------
+        ????
+
+        Returns
+        -------
+        ????
+    """
+
+    keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+    flatfiles = ImageFileCollection('Flats', keywords=keys)
+    cameras = ['wide', 'narrow']
+    filters = ['Ks', 'H', 'J']
+    add_filters = {'DATE-OBS': flatdate}
+    flats = {}
+
+    ## IMPORT MASTER FLATS for chosen date in dictionary flats={}
+
+    for camera, filter in product(cameras, filters):
+
+        for hdu, fname in flatfiles.hdus(CAMNAME=camera, FWINAME=filter, return_fname=True, **add_filters):
+            meta = hdu.header
+            meta['filename'] = fname
+            flats[fname[:-5]] = ccdproc.CCDData(data=hdu.data.astype('float32'), meta=meta, unit="adu")
+
+    ## APPLY FLAT CORRECTION TO IMAGES
+
+    for d in glob(dir):
+
+        directory = "/".join(d.split('/')[0:2]) + '/flat_subtracted'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        images = ImageFileCollection(d, keywords=keys, glob_include='d*.fits')
+        skys = []
+
+        for camera, filter in product(cameras, filters):
+
+            for hdu, fname in images.hdus(CAMNAME=camera, FWINAME=filter, return_fname=True):
+                meta = hdu.header
+                meta['filename'] = fname
+                if (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'Ks'):
+                    sky = ccdproc.CCDData(data=hdu.data.astype('float32'), meta=meta, unit="adu")
+                    print(fname)
+                    cflat = ccdproc.flat_correct(sky, flats['KFlatWideKs0807'])
+                    cflat.write(directory + '/f' + fname, overwrite=True)
+
+
+                # ------------------------------ REQUIRED FUNCTIONS -----------------------------
 
 def swarpfilter(d, dir, directory, images, keys, filter, lamp, camera, done, output):
     """
