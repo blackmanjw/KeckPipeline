@@ -457,6 +457,39 @@ def flatcorrect(dir='Skys/*/dark_subtracted/', flatdate='2018-08-07'):
                         'KFlatNarrowJ' + flatdate.split('-')[1] + flatdate.split('-')[2]])
                     cflat.write(directory + '/f' + fname, overwrite=True)
 
+                    
+                    
+def skycombine(dir = 'Skys/*/dark_subtracted/'):
+    """
+        This function combines the skys from files in a give directory, after they have been dark subtracted and flat 
+        corrected.
+
+        Parameters
+        ----------
+        ????
+
+        Returns
+        -------
+        ????
+    """
+    for d in glob(dir):
+        
+        directory = "/".join(d.split('/')[0:2]) + '/swarped'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
+        keys = ['OBJECTS', 'ITIME', 'FWINAME', 'DATE-OBS', 'CAMNAME', 'HISTORY', 'FLSPECTR']
+        images = ImageFileCollection(d, keywords = keys, glob_include = 'd*.fits')
+        
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp = '*', camera = 'narrow',done='Dark Subtracted', output='cKSkyNarrowH')
+        swarpfilter(d, dir, directory, images, keys, filter='H',lamp = '*', camera = 'wide', done='Dark Subtracted', output='cKSkyWideH')
+        swarpfilter(d, dir, directory, images, keys, filter='J',lamp = '*', camera = 'narrow', done='Dark Subtracted', output='cKSkyNarrowJ')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp = '*',camera = 'wide', done='Dark Subtracted', output='cKSkyWideJ')   
+        swarpfilter(d, dir, directory, images, keys, filter='Ks',lamp = '*', camera = 'narrow', done='Dark Subtracted', output='cKSkyNarrowKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks',lamp = '*', camera = 'wide', done='Dark Subtracted', output='cKSkyWideKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Lp',lamp = '*', camera = 'narrow', done='Dark Subtracted', output='cKSkyNarrowLp')
+        swarpfilter(d, dir, directory, images, keys, filter='Lp',lamp = '*', camera = 'wide', done='Dark Subtracted', output='cKSkyNarrowLp')
+   
 
 # ------------------------------ REQUIRED FUNCTIONS -----------------------------
 
