@@ -418,7 +418,7 @@ def flatcorrect(dir='Skys/*/dark_subtracted/', flatdate='2018-08-07'):
 
     for d in glob(dir):
 
-        directory = "/".join(d.split('/')[0:2]) + '/flat_subtracted'
+        directory = "/".join(d.split('/')[0:2]) + '/flat_corrected'
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -430,14 +430,35 @@ def flatcorrect(dir='Skys/*/dark_subtracted/', flatdate='2018-08-07'):
             for hdu, fname in images.hdus(CAMNAME=camera, FWINAME=filter, return_fname=True):
                 meta = hdu.header
                 meta['filename'] = fname
+                sky = ccdproc.CCDData(data=hdu.data.astype('float32'), meta=meta, unit="adu")
+
                 if (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'Ks'):
-                    sky = ccdproc.CCDData(data=hdu.data.astype('float32'), meta=meta, unit="adu")
-                    print(fname)
-                    cflat = ccdproc.flat_correct(sky, flats['KFlatWideKs0807'])
+                    cflat = ccdproc.flat_correct(sky,
+                                                 flats['KFlatWideKs' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.write(directory + '/f' + fname, overwrite=True)
+                elif (meta['CAMNAME'] == 'narrow') and (meta['FWINAME'] == 'Ks'):
+                    cflat = ccdproc.flat_correct(sky, flats[
+                        'KFlatNarrowKs' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.write(directory + '/f' + fname, overwrite=True)
+                elif (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'H'):
+                    cflat = ccdproc.flat_correct(sky,
+                                                 flats['KFlatWideH' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.write(directory + '/f' + fname, overwrite=True)
+                elif (meta['CAMNAME'] == 'narrow') and (meta['FWINAME'] == 'H'):
+                    cflat = ccdproc.flat_correct(sky, flats[
+                        'KFlatNarrowH' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.write(directory + '/f' + fname, overwrite=True)
+                elif (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'J'):
+                    cflat = ccdproc.flat_correct(sky,
+                                                 flats['KFlatWideJ' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.write(directory + '/f' + fname, overwrite=True)
+                elif (meta['CAMNAME'] == 'narrow') and (meta['FWINAME'] == 'J'):
+                    cflat = ccdproc.flat_correct(sky, flats[
+                        'KFlatNarrowJ' + flatdate.split('-')[1] + flatdate.split('-')[2]])
                     cflat.write(directory + '/f' + fname, overwrite=True)
 
 
-                # ------------------------------ REQUIRED FUNCTIONS -----------------------------
+# ------------------------------ REQUIRED FUNCTIONS -----------------------------
 
 def swarpfilter(d, dir, directory, images, keys, filter, lamp, camera, done, output):
     """
