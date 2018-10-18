@@ -15,14 +15,25 @@
 #
 #
 
-import os
-from astropy.io import fits
-import astromatic_wrapper as aw
-import glob
 import pandas as pd
 import numpy as np
 import shutil
 from datetime import datetime, timedelta
+from glob import glob
+from ccdproc import ImageFileCollection
+import warnings
+from astropy.io import fits
+import astropy.units as u
+from astropy.nddata import CCDData
+import ccdproc
+from itertools import product
+import os
+from astropy.io.fits import getdata
+import astromatic_wrapper as aw
+import numpy as np
+from distutils import dir_util
+
+warnings.filterwarnings("ignore")
 
 
 # ------------------------------ USEFUL FUNCTIONS -----------------------------
@@ -71,7 +82,7 @@ def swarp(files, output='output.fits', celestial_type='PIXEL'):
             'CELESTIAL_TYPE': celestial_type,
             'INTERPOLATE': 'N',
             'BLANK_BADPIXELS': 'N',
-            'COPY_KEYWORDS': 'OBJECT,CAMNAME,FWINAME,ITIME,DATE-OBS,FLSPECTR,HISTORY'
+            'COPY_KEYWORDS': 'OBJECT,CAMNAME,FWINAME,ITIME,DATE-OBS,OBSDATE,FLSPECTR,HISTORY'
         },
         'temp_path': '.',
         'config_file': 'config/config.swarp'
@@ -147,7 +158,7 @@ def rename(source_dir,dest_dir):
     keep_going(text="This script will backup the original folder to dest_dir/Source/** and remove the original folder. It will make copies of the  original files and rename them in directories called Darks, Flats, etc. Do you wish to continue? Answer Y or N.")
 
     ## Backup Original Source Folder
-    shutil.copytree(source_dir, dest_dir + '/Source')
+    dir_util.copy_tree(source_dir, dest_dir + '/Source')
 
     data = []
     for file in os.listdir("./" + source_dir):  # put in your path directory
@@ -222,7 +233,6 @@ def darkcombine(darks_dir='Darks/'):
         matches5 = (images.summary['ITIME'] < 6)
         dark5 = [d + x for x in images.summary['file'][matches5].tolist()]
         if dark5:
-            print(dark5[2])
             swarp(dark5, output=darks_dir + 'Dark5sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
 
         matches10 = (images.summary['ITIME'] == 10)
@@ -244,7 +254,8 @@ def darkcombine(darks_dir='Darks/'):
         dark60 = [d + x for x in images.summary['file'][matches60].tolist()]
         if dark60:
             swarp(dark60, output=darks_dir + 'Dark60sec' + d.split("-")[1] + d.split("-")[2][:-1] + '.fits')
-        # print(y)
+
+    print('DONE')
 
 
 def darksubtract(dir='Flats', master_dark='Darks/Dark60sec0807.fits'):
@@ -292,7 +303,7 @@ def darksubtract(dir='Flats', master_dark='Darks/Dark60sec0807.fits'):
             flats = CCDData(data=flat.data.astype('float32'), meta=meta, unit="adu")
             dflat = (ccdproc.subtract_dark(flats, mdark, exposure_time='ITIME',
                                            exposure_unit=u.second,
-                                           add_keyword={'HISTORY': 'Dark Subtracted'},
+                                           add_keyword={'HISTORY': 'Dark Subtracted' 'OBSDATE': flat.header['DATE-OBS']},
                                            scale=True))
             dflat.write(directory + '/d' + fname, overwrite=True)
 
@@ -316,7 +327,7 @@ def flatcombine(dir='Flats/*/dark_subtracted/'):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'OBSDATE', 'FLSPECTR', 'HISTORY']
         images = ImageFileCollection(d, keywords=keys, glob_include='d*.fits')
 
         swarpfilter(d, dir, directory, images, keys, filter='H', lamp='on', camera='narrow', done='Dark Subtracted',
@@ -358,7 +369,7 @@ def flatprocess(dir='Flats/*/swarped/'):
 
     for d in glob(dir):
 
-        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+        keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'OBSDATE', 'FLSPECTR', 'HISTORY']
         images = ImageFileCollection(d, keywords=keys, glob_include='c*.fits')
         cameras = ['wide', 'narrow']
         filters = ['Ks', 'H', 'J']
@@ -381,7 +392,7 @@ def flatprocess(dir='Flats/*/swarped/'):
                 MasterFlat.data = MasterFlat / np.ma.average(MasterFlat)
                 MasterFlat.write(
                     'Flats/KFlat' + MasterFlat.meta['CAMNAME'].title() + MasterFlat.meta['FWINAME'].title() +
-                    MasterFlat.meta['DATE-OBS'].split("-")[1] + MasterFlat.meta['DATE-OBS'].split("-")[2] + '.fits',
+                    MasterFlat.meta['OBSDATE'].split("-")[1] + MasterFlat.meta['OBSDATE'].split("-")[2] + '.fits',
                     overwrite=True)
                 flats[:] = []
 
@@ -398,11 +409,11 @@ def flatcorrect(dir='Skys/*/dark_subtracted/', flatdate='2018-08-07'):
         ????
     """
 
-    keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'DATE-OBS', 'FLSPECTR', 'HISTORY']
+    keys = ['OBJECT', 'CAMNAME', 'FWINAME', 'ITIME', 'OBSDATE', 'FLSPECTR', 'HISTORY']
     flatfiles = ImageFileCollection('Flats', keywords=keys)
     cameras = ['wide', 'narrow']
     filters = ['Ks', 'H', 'J']
-    add_filters = {'DATE-OBS': flatdate}
+    add_filters = {'OBSDATE': flatdate}
     flats = {}
 
     ## IMPORT MASTER FLATS for chosen date in dictionary flats={}
@@ -457,11 +468,10 @@ def flatcorrect(dir='Skys/*/dark_subtracted/', flatdate='2018-08-07'):
                         'KFlatNarrowJ' + flatdate.split('-')[1] + flatdate.split('-')[2]])
                     cflat.write(directory + '/f' + fname, overwrite=True)
 
-                    
-                    
-def skycombine(dir = 'Skys/*/dark_subtracted/'):
+
+def skycombine(dir='Skys/*/flat_corrected/'):
     """
-        This function combines the skys from files in a give directory, after they have been dark subtracted and flat 
+        This function combines the skys from files in a give directory, after they have been dark subtracted and flat
         corrected.
 
         Parameters
@@ -473,23 +483,31 @@ def skycombine(dir = 'Skys/*/dark_subtracted/'):
         ????
     """
     for d in glob(dir):
-        
+
         directory = "/".join(d.split('/')[0:2]) + '/swarped'
         if not os.path.exists(directory):
             os.makedirs(directory)
-            
-        keys = ['OBJECTS', 'ITIME', 'FWINAME', 'DATE-OBS', 'CAMNAME', 'HISTORY', 'FLSPECTR']
-        images = ImageFileCollection(d, keywords = keys, glob_include = 'd*.fits')
-        
-        swarpfilter(d, dir, directory, images, keys, filter='H', lamp = '*', camera = 'narrow',done='Dark Subtracted', output='cKSkyNarrowH')
-        swarpfilter(d, dir, directory, images, keys, filter='H',lamp = '*', camera = 'wide', done='Dark Subtracted', output='cKSkyWideH')
-        swarpfilter(d, dir, directory, images, keys, filter='J',lamp = '*', camera = 'narrow', done='Dark Subtracted', output='cKSkyNarrowJ')
-        swarpfilter(d, dir, directory, images, keys, filter='J', lamp = '*',camera = 'wide', done='Dark Subtracted', output='cKSkyWideJ')   
-        swarpfilter(d, dir, directory, images, keys, filter='Ks',lamp = '*', camera = 'narrow', done='Dark Subtracted', output='cKSkyNarrowKs')
-        swarpfilter(d, dir, directory, images, keys, filter='Ks',lamp = '*', camera = 'wide', done='Dark Subtracted', output='cKSkyWideKs')
-        swarpfilter(d, dir, directory, images, keys, filter='Lp',lamp = '*', camera = 'narrow', done='Dark Subtracted', output='cKSkyNarrowLp')
-        swarpfilter(d, dir, directory, images, keys, filter='Lp',lamp = '*', camera = 'wide', done='Dark Subtracted', output='cKSkyNarrowLp')
-   
+
+        keys = ['OBJECTS', 'ITIME', 'FWINAME', 'OBSDATE', 'CAMNAME', 'HISTORY', 'FLSPECTR']
+        images = ImageFileCollection(d, keywords=keys, glob_include='f*.fits')
+
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp='*', camera='narrow', done='Dark Subtracted',
+                    output='cKSkyNarrowH')
+        swarpfilter(d, dir, directory, images, keys, filter='H', lamp='*', camera='wide', done='Dark Subtracted',
+                    output='cKSkyWideH')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp='*', camera='narrow', done='Dark Subtracted',
+                    output='cKSkyNarrowJ')
+        swarpfilter(d, dir, directory, images, keys, filter='J', lamp='*', camera='wide', done='Dark Subtracted',
+                    output='cKSkyWideJ')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks', lamp='*', camera='narrow', done='Dark Subtracted',
+                    output='cKSkyNarrowKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Ks', lamp='*', camera='wide', done='Dark Subtracted',
+                    output='cKSkyWideKs')
+        swarpfilter(d, dir, directory, images, keys, filter='Lp', lamp='*', camera='narrow', done='Dark Subtracted',
+                    output='cKSkyNarrowLp')
+        swarpfilter(d, dir, directory, images, keys, filter='Lp', lamp='*', camera='wide', done='Dark Subtracted',
+                    output='cKSkyNarrowLp')
+
 
 # ------------------------------ REQUIRED FUNCTIONS -----------------------------
 
