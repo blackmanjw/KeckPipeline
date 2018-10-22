@@ -222,8 +222,8 @@ def rename(source_dir, dest_dir):
                     count) + ".fits"))
             os.makedirs(os.path.dirname(dest_dir + '/Skys/' + str(datemod[i]) + '/'), exist_ok=True)
         else:
-            renamed.append((dest_dir + '/Objects/' + header['OBJECT'].upper() + '/' + str(datemod[i]) + '/' + 'K' +
-                            header['OBJECT'].upper() +
+            renamed.append((dest_dir + '/Objects/' + header['OBJECT'].upper() + '/' + str(datemod[i]) + '/' + 'K'
+                            + list(header['CAMNAME'])[0].title() + header['OBJECT'].upper() +
                             header['FWINAME'] + str(
                         count) + ".fits"))
             os.makedirs(
