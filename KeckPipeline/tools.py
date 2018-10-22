@@ -44,7 +44,7 @@ def keep_going(text="Do you wish to continue? Answer Y or N."):
     """
         This function asks the user whether or not they want the script to proceed.
 
-        The user needs to type 'Y' (no quotes), else the script will abort.
+        The user needs to type 'Y' (no quotes), else the script will abort. Hmm.
 
         Parameters
         ----------
