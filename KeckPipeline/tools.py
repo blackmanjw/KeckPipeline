@@ -25,6 +25,7 @@ import warnings
 from astropy.io import fits
 import astropy.units as u
 from astropy.nddata import CCDData
+from astropy.io import fits
 import ccdproc
 from itertools import product
 import os
@@ -329,10 +330,13 @@ def darksubtract(dir='Flats', master_dark='Darks/Dark60sec0807.fits'):
             flats = CCDData(data=flat.data.astype('float32'), meta=meta, unit="adu")
             dflat = (ccdproc.subtract_dark(flats, mdark, exposure_time='ITIME',
                                            exposure_unit=u.second,
-                                           add_keyword={'HISTORY': 'Dark Subtracted', 'OBSDATE': flat.header['DATE-OBS']},
+                                           add_keyword={'HISTORY': 'Dark Subtracted', 'OBSDATE': flat.header['DATE-OBS'],
+                                           'CRVAL1': meta['CRVAL1'], 'CRVAL2': meta['CRVAL2']},
                                            scale=True))
+            #print(dflat.meta['CRVAL1'])
+            dflat.wcs = None
             dflat.write(directory + '/d' + fname, overwrite=True)
-
+            fits.writeto
             
 # -----------------------------  
             
@@ -420,6 +424,7 @@ def flatprocess(dir='Flats/*/swarped/'):
 
                 # Normalize Flat
                 MasterFlat.data = MasterFlat / np.ma.average(MasterFlat)
+                MasterFlat.wcs = None
                 MasterFlat.write(
                     'Flats/KFlat' + MasterFlat.meta['CAMNAME'].title() + MasterFlat.meta['FWINAME'].title() +
                     MasterFlat.meta['OBSDATE'].split("-")[1] + MasterFlat.meta['OBSDATE'].split("-")[2] + '.fits',
@@ -487,26 +492,32 @@ def flatcorrect(dir='Skys', flatdate='2018-08-07'):
                 if (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'Ks'):
                     cflat = ccdproc.flat_correct(sky,
                                                  flats['KFlatWideKs' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.wcs = None
                     cflat.write(directory + '/f' + fname, overwrite=True)
                 elif (meta['CAMNAME'] == 'narrow') and (meta['FWINAME'] == 'Ks'):
                     cflat = ccdproc.flat_correct(sky, flats[
                         'KFlatNarrowKs' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.wcs = None
                     cflat.write(directory + '/f' + fname, overwrite=True)
                 elif (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'H'):
                     cflat = ccdproc.flat_correct(sky,
                                                  flats['KFlatWideH' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.wcs = None
                     cflat.write(directory + '/f' + fname, overwrite=True)
                 elif (meta['CAMNAME'] == 'narrow') and (meta['FWINAME'] == 'H'):
                     cflat = ccdproc.flat_correct(sky, flats[
                         'KFlatNarrowH' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.wcs = None
                     cflat.write(directory + '/f' + fname, overwrite=True)
                 elif (meta['CAMNAME'] == 'wide') and (meta['FWINAME'] == 'J'):
                     cflat = ccdproc.flat_correct(sky,
                                                  flats['KFlatWideJ' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.wcs = None
                     cflat.write(directory + '/f' + fname, overwrite=True)
                 elif (meta['CAMNAME'] == 'narrow') and (meta['FWINAME'] == 'J'):
                     cflat = ccdproc.flat_correct(sky, flats[
                         'KFlatNarrowJ' + flatdate.split('-')[1] + flatdate.split('-')[2]])
+                    cflat.wcs = None
                     cflat.write(directory + '/f' + fname, overwrite=True)
                     
 
@@ -627,11 +638,19 @@ def skycorrect(dir='Objects'):
                                                          meta['OBSDATE'].split("-")[2]][0]
                     skyback = skys['cKSkyWideKs' + meta['OBSDATE'].split("-")[1] + 
                                                          meta['OBSDATE'].split("-")[2]][1]
-                    skymodm=ccdproc.gain_correct(skymod, sciback/skyback)
+                    
+                    skymodm = ccdproc.gain_correct(skymod, sciback/skyback)
+                                       
                     ## Correct Science Image buy subtracting scaled sky
                     sobject=ccdproc.subtract_dark(science, skymodm, exposure_time='ITIME',
                                                     exposure_unit=u.second,
                                                     add_keyword={'HISTORY_3': 'Sky Subtracted'}, scale=False)
+                    
+                    ###Add 100ADU to each pixel to prevent negative values after sky subtraction
+                    mod100 = CCDData(np.full((1024, 1024), 200.0, dtype='float32'), unit=u.adu)
+                    sobject.data = np.add(sobject,mod100)
+                    ###Write sky_corrected files
+                    sobject.wcs = None
                     sobject.write(directory + '/s' + fname, overwrite=True)
                     
                 
